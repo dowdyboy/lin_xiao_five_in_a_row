@@ -1,0 +1,11 @@
+# pycharm
+.idea/
+*.iml
+
+# custom
+datasets/
+logs/
+script.py
+
+# pylint
+.pylintrc
