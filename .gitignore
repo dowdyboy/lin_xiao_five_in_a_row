@@ -6,6 +6,8 @@
 datasets/
 logs/
 script.py
+*/__pycache__
+__pycache__/
 
 # pylint
 .pylintrc
