@@ -48,6 +48,10 @@ class MonteChessState:
         pos = np.where(self.chess_state == MonteChessTreeConfig.EMPTY_POSITION)
         return list(zip(pos[0], pos[1]))
 
+    def get_empty_position_mask(self):
+        mask = self.chess_state.reshape(-1) == MonteChessTreeConfig.EMPTY_POSITION
+        return mask
+
     def get_black_position(self):
         assert self.chess_state is not None
         pos = np.where(self.chess_state == MonteChessTreeConfig.PLAYER_BLACK)
@@ -129,6 +133,7 @@ class MonteChessTreeNode:
 
     def select_next_position_idx(self):
         select_v = self.Q + self.tree.conf.c_puct * self.P * (np.sqrt(np.sum(self.N)) / (1. + self.N))
+        select_v[self.state.get_empty_position_mask() == False] = 0.
         position_idx = np.argmax(select_v)
         return position_idx, (position_idx // self.tree.conf.chess_size[1], position_idx % self.tree.conf.chess_size[1])
 
@@ -228,6 +233,7 @@ class MonteChessTreeNode:
     def is_over(self):
         return self.node_state == MonteChessTreeNode.STATE_BLACK_WIN or self.node_state == MonteChessTreeNode.STATE_WHITE_WIN or self.node_state == MonteChessTreeNode.STATE_TWO_WIN
 
+
 def test(model):
     conf = MonteChessTreeConfig()
     tree = MonteChessTree(conf, model)
@@ -235,7 +241,7 @@ def test(model):
 
     cur_node = tree.root
 
-    for _ in range(100000):
+    for _ in range(10000):
         is_extend_node = False
         next_idx, next_pos = cur_node.select_next_position_idx()
         if cur_node.has_child_node(next_idx):
@@ -254,6 +260,8 @@ def test(model):
             cur_node = new_node
         # 判断是否执行回传
         if is_extend_node or cur_node.is_over():
+            if cur_node.is_over():
+                print('over')
             p_node = cur_node.parent
             while p_node is not None:
                 chess_pos, _ = p_node.get_next_step_and_clear()
