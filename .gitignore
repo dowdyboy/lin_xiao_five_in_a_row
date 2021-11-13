@@ -8,6 +8,9 @@ logs/
 script.py
 */__pycache__
 __pycache__/
+out/
+log/
+tmp.log
 
 # pylint
 .pylintrc

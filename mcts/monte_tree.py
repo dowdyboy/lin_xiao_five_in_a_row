@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 import copy
+import os
+import pickle
 
 
 class MonteChessTreeConfig:
@@ -238,64 +240,80 @@ class MonteChessTreeNode:
         prob = (self.N ** (1. / self.tree.conf.t)) / np.sum(self.N ** (1. / self.tree.conf.t))
         prob[self.state.get_empty_position_mask() == False] = 0.
         next_step = np.argmax(prob)
-        return next_step, (next_step // self.tree.conf.chess_size[1], next_step % self.tree.conf.chess_size[1])
+        return next_step, (next_step // self.tree.conf.chess_size[1], next_step % self.tree.conf.chess_size[1]), prob
 
 
-def test(model):
-    conf = MonteChessTreeConfig()
-    tree = MonteChessTree(conf, model)
-
-    tree.reset()
-
-    while not tree.root.is_over():
-        print(tree.root.state.chess_state)
-        cur_node = tree.root
-        backward_count = 0
-        while backward_count < 5000:
-            is_extend_node = False
-            next_idx, next_pos = cur_node.select_next_position_idx()
-            if cur_node.has_child_node(next_idx):
-                cur_node.record_next_step(next_idx)
-                cur_node = cur_node.children[next_idx]
-            else:
-                is_extend_node = True
-                next_state = cur_node.state.copy()
-                next_state.update_chess_state(next_pos)
-                next_state.switch_player()
-                new_node = MonteChessTreeNode(tree)
-                new_node.init_state(next_state)
-                new_node.set_parent(cur_node)
-                cur_node.children[next_idx] = new_node
-                cur_node.record_next_step(next_idx)
-                cur_node = new_node
-            # 判断是否执行回传
-            if is_extend_node or cur_node.is_over():
-
-                v = 0.
-                if cur_node.is_over():
-                    print('chess over')
-                    v = 1. if cur_node.node_state == MonteChessTreeNode.STATE_BLACK_WIN else -1. if cur_node.node_state == MonteChessTreeNode.STATE_WHITE_WIN else 0.
-                else:
-                    v = cur_node.V
-
-                p_node = cur_node.parent
-                while p_node is not None:
-                    chess_pos, _ = p_node.get_next_step_and_clear()
-                    p_node.N[chess_pos] = p_node.N[chess_pos] + 1
-                    p_node.W[chess_pos] = p_node.W[chess_pos] + v
-                    p_node.Q = p_node.W / (p_node.N + 1e-9)
-                    p_node = p_node.parent
-                    cur_node = cur_node.parent
-                cur_node = tree.root
-                backward_count += 1
-
-        next_idx, next_pos = tree.root.get_real_step()
-        next_state = tree.root.state.copy()
-        next_state.update_chess_state(next_pos)
-        next_state.switch_player()
-        tree.reset(next_state)
-
-    print(tree.root.state.chess_state)
+# def test(model):
+#     chess_save_dir = 'out/monte500'
+#     if not os.path.isdir(chess_save_dir):
+#         os.makedirs(chess_save_dir)
+#
+#     conf = MonteChessTreeConfig()
+#     tree = MonteChessTree(conf, model)
+#     num_chess = 3
+#
+#     for i in range(num_chess):
+#         chess_record = []
+#         tree.reset()
+#         while not tree.root.is_over():
+#             print(tree.root.state.chess_state)
+#             cur_node = tree.root
+#             backward_count = 0
+#             while backward_count < 100:
+#                 is_extend_node = False
+#                 next_idx, next_pos = cur_node.select_next_position_idx()
+#                 if cur_node.has_child_node(next_idx):
+#                     cur_node.record_next_step(next_idx)
+#                     cur_node = cur_node.children[next_idx]
+#                 else:
+#                     is_extend_node = True
+#                     next_state = cur_node.state.copy()
+#                     next_state.update_chess_state(next_pos)
+#                     next_state.switch_player()
+#                     new_node = MonteChessTreeNode(tree)
+#                     new_node.init_state(next_state)
+#                     new_node.set_parent(cur_node)
+#                     cur_node.children[next_idx] = new_node
+#                     cur_node.record_next_step(next_idx)
+#                     cur_node = new_node
+#                 # 判断是否执行回传
+#                 if is_extend_node or cur_node.is_over():
+#
+#                     v = 0.
+#                     if cur_node.is_over():
+#                         print('simulate chess over')
+#                         v = 1. if cur_node.node_state == MonteChessTreeNode.STATE_BLACK_WIN else -1. if cur_node.node_state == MonteChessTreeNode.STATE_WHITE_WIN else 0.
+#                     else:
+#                         v = cur_node.V
+#
+#                     p_node = cur_node.parent
+#                     while p_node is not None:
+#                         chess_pos, _ = p_node.get_next_step_and_clear()
+#                         p_node.N[chess_pos] = p_node.N[chess_pos] + 1
+#                         p_node.W[chess_pos] = p_node.W[chess_pos] + v
+#                         p_node.Q = p_node.W / (p_node.N + 1e-9)
+#                         p_node = p_node.parent
+#                         cur_node = cur_node.parent
+#                     cur_node = tree.root
+#                     backward_count += 1
+#
+#             saved_state = tree.root.state.trans_state_format()
+#             next_idx, next_pos, saved_prob = tree.root.get_real_step()
+#             chess_record.append(saved_state)
+#             chess_record.append(saved_prob.reshape(conf.chess_size[0], conf.chess_size[1]))
+#
+#             next_state = tree.root.state.copy()
+#             next_state.update_chess_state(next_pos)
+#             next_state.switch_player()
+#             tree.reset(next_state)
+#
+#         chess_record.append(tree.root.state.trans_state_format())
+#         chess_record.append(tree.root.node_state)
+#
+#         print(tree.root.state.chess_state)
+#         print('no.{} chess finished and saved.'.format(i))
+#         with open(os.path.join(chess_save_dir, str(i) + '.pkl'), 'wb+') as f:
+#             pickle.dump(chess_record, f)
 
 # for _ in range(10000):
 #     is_extend_node = False
