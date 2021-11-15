@@ -9,12 +9,17 @@ def mcts_gen_chess(model, num_chess, simulate_count, save_dir, log_file_path=Non
     if not os.path.isdir(chess_save_dir):
         os.makedirs(chess_save_dir)
 
+    start_num = 0
+    chess_filename_list = os.listdir(chess_save_dir)
+    if len(chess_filename_list) != 0:
+        start_num = sorted(list(map(lambda x: int(x.split('.')[0]), chess_filename_list)), reverse=True)[0] + 1
+
     conf = MonteChessTreeConfig()
     tree = MonteChessTree(conf, model)
 
     logger = print if log_file_path is None else MyNetLogger.default(log_file_path)
 
-    for i in range(num_chess):
+    for i in range(start_num, num_chess):
         chess_record = []
         tree.reset()
         while not tree.root.is_over():
