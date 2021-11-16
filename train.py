@@ -27,7 +27,7 @@ if __name__ == '__main__':
     conf.set_cuda(True)
     conf.set_input_shape(16, 16)
     conf.set_train_info(10, 16, 1e-3)
-    conf.set_checkpoint_config(1, 'checkpoints')
+    conf.set_checkpoint_config(1, 'checkpoints/m10000')
     conf.set_dataset_dir('out/m10000')
     conf.set_num_worker(0)
     conf.set_log('log/train.log')
@@ -79,6 +79,7 @@ if __name__ == '__main__':
         logger('successfully load pretrained : {}'.format(conf.pretrain_path))
 
     for _ in range(ep_num, conf.epoch_num):
+        logger('epoch {} start...'.format(ep_num))
         model.train()
         for bat_state, bat_prob, bat_value in train_loader:
             bat_state, bat_prob, bat_value = bat_state.to(device), bat_prob.to(device), bat_value.to(device)
