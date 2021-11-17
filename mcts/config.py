@@ -33,3 +33,10 @@ class MCTSConfig:
         if not os.path.isdir(os.path.dirname(log_file)):
             os.makedirs(os.path.dirname(log_file))
 
+    def __str__(self):
+        ret = '[MCTS CONFIG]\n'
+        attrs = list(filter(lambda x: not str(x).startswith('__') and not str(x).startswith('set'), dir(self)))
+        sorted(attrs)
+        for a in attrs:
+            ret += '{}: {}\n'.format(a, getattr(self, a))
+        return ret

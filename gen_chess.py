@@ -31,4 +31,4 @@ if __name__ == '__main__':
             model.load_state_dict(torch.load(os.path.join(conf.pretrained_path, model_filename)))
         logger('successfully load pretrained : {}'.format(conf.pretrained_path))
 
-    mcts_gen_chess(model, conf.num_chess, conf.simulate_count, conf.save_dir, conf.log_file)
+    mcts_gen_chess(model, conf.num_chess, conf.simulate_count, conf.save_dir, conf.log_file, logger)

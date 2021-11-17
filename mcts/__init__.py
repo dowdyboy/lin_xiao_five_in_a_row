@@ -4,7 +4,7 @@ from mcts.monte_tree import MonteChessTreeConfig, MonteChessTree, MonteChessTree
 from utils.log import MyNetLogger
 
 
-def mcts_gen_chess(model, num_chess, simulate_count, save_dir, log_file_path=None):
+def mcts_gen_chess(model, num_chess, simulate_count, save_dir, log_file_path=None, logger=print):
     chess_save_dir = save_dir
     if not os.path.isdir(chess_save_dir):
         os.makedirs(chess_save_dir)
@@ -17,7 +17,7 @@ def mcts_gen_chess(model, num_chess, simulate_count, save_dir, log_file_path=Non
     conf = MonteChessTreeConfig()
     tree = MonteChessTree(conf, model)
 
-    logger = print if log_file_path is None else MyNetLogger.default(log_file_path)
+    # logger = print if log_file_path is None else MyNetLogger.default(log_file_path)
 
     for i in range(start_num, num_chess):
         chess_record = []

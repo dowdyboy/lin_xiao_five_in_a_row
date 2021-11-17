@@ -26,8 +26,8 @@ if __name__ == '__main__':
     conf = LinXiaoNetConfig()
     conf.set_cuda(True)
     conf.set_input_shape(16, 16)
-    conf.set_train_info(10, 16, 1e-3)
-    conf.set_checkpoint_config(1, 'checkpoints/m10000')
+    conf.set_train_info(1000, 128, 1e-2)
+    conf.set_checkpoint_config(100, 'checkpoints/m10000')
     conf.set_dataset_dir('out/m10000')
     conf.set_num_worker(0)
     conf.set_log('log/train.log')
@@ -48,7 +48,7 @@ if __name__ == '__main__':
     loss_func.to(device)
 
     train_dataset = ChessDataset(conf.dataset_dir)
-    train_loader = DataLoader(train_dataset, conf.batch_size, shuffle=False, num_workers=conf.num_worker)
+    train_loader = DataLoader(train_dataset, conf.batch_size, shuffle=True, num_workers=conf.num_worker)
 
     ep_num = 0
 
