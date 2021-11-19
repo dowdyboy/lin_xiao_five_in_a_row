@@ -8,10 +8,16 @@ import os
 
 class ChessDataset(Dataset):
 
-    def __init__(self, chess_dir):
+    def __init__(self, chess_dir, nearest_limit=None, logger=print):
         super(ChessDataset, self).__init__()
         self.chess_dir = chess_dir
         self.chess_filename_list = os.listdir(chess_dir)
+        if len(self.chess_filename_list) != 0:
+            self.chess_filename_list = sorted(self.chess_filename_list, key=lambda x: int(x.split('.')[0]), reverse=True)
+            logger(self.chess_filename_list)
+            if nearest_limit is not None:
+                self.chess_filename_list = self.chess_filename_list[:nearest_limit]
+                logger(self.chess_filename_list)
         self.chess_state_list = []
         self.chess_prob_list = []
         self.chess_value_list = []
