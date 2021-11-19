@@ -15,6 +15,7 @@ $(function (){
     var cur_player = 1;
     var cur_state = initChessState(row, col);
     var cur_state_id = null;
+    var cur_chess_state = 0;
 
     function drawChessTable(ctx, width, height, offset_x, offset_y, row, col){
         ctx.fillStyle = 'rgb(200,120,38)';
@@ -78,7 +79,147 @@ $(function (){
     }
 
     function updateReminderText(cur_player){
-        $('#reminder').text(cur_player == 1?'到你了，执子之手，与子偕老，请落子':'不要着急，等一下电脑思考思考');
+        if(cur_chess_state == 0){
+            $('#reminder').text(cur_player == 1?'到你了，执子之手，与子偕老，请落子':'不要着急，等一下电脑思考思考');
+        }
+        if(cur_chess_state == 1){
+            $('#reminder').text('恭喜！你赢了！！击败了电脑！');
+        }
+        if(cur_chess_state == -1){
+            $('#reminder').text('很遗憾，你被电脑击败了！！');
+        }
+        if(cur_chess_state == 2){
+            $('#reminder').text('哎呀呀，居然平局了~~~');
+        }
+    }
+
+    function updateChessState(){
+        function is_in_list(list, pair){
+            for(var i=0;i<list.length; i++){
+                if(list[i][0] == pair[0] && list[i][1] == pair[1]){
+                    return true;
+                }
+            }
+            return false;
+        }
+        var black_list = [], white_list = [];
+        for(var i=0;i<row;i++){
+            for(var k=0;k<col;k++){
+                if(cur_state[i][k] == 1){
+                    black_list.push([i, k]);
+                }
+                if(cur_state[i][k] == -1){
+                    white_list.push([i, k]);
+                }
+            }
+        }
+        // black
+        for(var i=0;i<black_list.length;i++){
+            var cur_x = black_list[i][0], cur_y = black_list[i][1];
+            var continuous_count = 0;
+            for(var x=Math.max(0, cur_x-4); x<Math.min(row, cur_x+4+1); x++){
+                if(is_in_list(black_list, [x, cur_y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = 1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var y=Math.max(0, cur_y-4); y<Math.min(col, cur_y+4+1); y++){
+                if(is_in_list(black_list, [cur_x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = 1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var x=Math.max(0, cur_x-4), y=Math.max(0, cur_y-4); x<Math.min(row, cur_x+4+1) && y<Math.min(col, cur_y+4+1); x++, y++){
+                if(is_in_list(black_list, [x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = 1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var x=cur_x-4, y=cur_y+4; x<cur_x+4+1 && y>cur_y-4-1; x++, y--){
+                if(is_in_list(black_list, [x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = 1;
+                    return;
+                }
+            }
+        }
+        // white
+        for(var i=0;i<white_list.length;i++){
+            var cur_x = white_list[i][0], cur_y = white_list[i][1];
+            var continuous_count = 0;
+            for(var x=Math.max(0, cur_x-4); x<Math.min(row, cur_x+4+1); x++){
+                if(is_in_list(white_list, [x, cur_y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = -1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var y=Math.max(0, cur_y-4); y<Math.min(col, cur_y+4+1); y++){
+                if(is_in_list(white_list, [cur_x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = -1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var x=Math.max(0, cur_x-4), y=Math.max(0, cur_y-4); x<Math.min(row, cur_x+4+1) && y<Math.min(col, cur_y+4+1); x++, y++){
+                if(is_in_list(white_list, [x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = -1;
+                    return;
+                }
+            }
+            continuous_count = 0;
+            for(var x=cur_x-4, y=cur_y+4; x<cur_x+4+1 && y>cur_y-4-1; x++, y--){
+                if(is_in_list(white_list, [x, y])){
+                    continuous_count += 1;
+                }else{
+                    continuous_count = 0;
+                }
+                if(continuous_count > 4){
+                    cur_chess_state = -1;
+                    return;
+                }
+            }
+        }
+        if(black_list.length + white_list.length >= row * col){
+            cur_chess_state = 2;
+        }
     }
 
     function put_state(state, player){
@@ -119,6 +260,7 @@ $(function (){
                             cur_state = resp.data.chess_state;
                             cur_player = -cur_player;
                             drawChessState(ctx, cur_state, chess_conf);
+                            updateChessState();
                             updateReminderText(cur_player);
                         }
                     }else{
@@ -149,12 +291,15 @@ $(function (){
         var tmp = y_pos;
         y_pos = x_pos;
         x_pos = tmp;
-        if(cur_state[x_pos][y_pos] == 0 && cur_player == 1) {
+        if(cur_state[x_pos][y_pos] == 0 && cur_player == 1 && cur_chess_state == 0) {
             cur_state[x_pos][y_pos] = cur_player;
             cur_player = -cur_player;
             drawChessState(ctx, cur_state, chess_conf);
+            updateChessState();
             updateReminderText(cur_player);
-            put_state(cur_state, cur_player);
+            if(cur_chess_state == 0){
+                put_state(cur_state, cur_player);
+            }
         }
     });
 

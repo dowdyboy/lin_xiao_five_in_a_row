@@ -13,7 +13,7 @@ from net import LinXiaoNet
 app = Flask(__name__, template_folder='server/templates', static_folder='server/static')
 state_result = {}
 
-simulate_count = 10000
+simulate_count = 2000
 model_pretrain_path = None
 model = LinXiaoNet(3)
 if model_pretrain_path is not None:
