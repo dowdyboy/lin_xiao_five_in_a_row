@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋</title>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/index.css')}}" >
+</head>
+<body>
+
+<h1>深度强化学习五子棋</h1>
+
+<div id="container">
+    <div><strong>提示：</strong><span id="reminder"></span></div>
+    <canvas id="canvas" width="576" height="576"></canvas>
+</div>
+
+<script type="text/javascript" src="{{url_for('static', filename='js/jquery.js')}}"></script>
+<script type="text/javascript" src="{{url_for('static', filename='js/index.js')}}"></script>
+</body>
+</html>

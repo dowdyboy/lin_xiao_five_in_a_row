@@ -28,7 +28,7 @@ if __name__ == '__main__':
             if filename.find('model') > -1:
                 model_filename = filename
         if model_filename is not None:
-            model.load_state_dict(torch.load(os.path.join(conf.pretrained_path, model_filename)))
+            model.load_state_dict(torch.load(os.path.join(conf.pretrained_path, model_filename), map_location='cpu'))
         logger('successfully load pretrained : {}'.format(conf.pretrained_path))
 
     mcts_gen_chess(model, conf.num_chess, conf.simulate_count, conf.save_dir, conf.log_file, logger)
