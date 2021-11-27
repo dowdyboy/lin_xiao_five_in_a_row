@@ -15,5 +15,7 @@ class ProbHead(nn.Module):
     def forward(self, x):
         x = self.spp(x)
         x = self.conv_out(x)
-        x = F.sigmoid(x)
+        h, w = x.size(-2), x.size(-1)
+        x = F.softmax(x.view(x.size(0), x.size(1), -1), dim=-1)
+        x = x.view(x.size(0), x.size(1), h, w)
         return x

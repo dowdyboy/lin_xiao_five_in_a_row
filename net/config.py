@@ -1,5 +1,6 @@
 import os
 
+from net.data.train_data_cache import TrainDataCache
 
 class LinXiaoNetConfig:
 
@@ -29,8 +30,9 @@ class LinXiaoNetConfig:
         # loader的worker个数
         self.num_worker = 0
 
-        # 数据集目录
+        # 数据集
         self.dataset_dir = None
+        # self.data_cache: TrainDataCache = None
 
     # 设置网络输入大小
     def set_input_shape(self, w, h):
@@ -72,6 +74,10 @@ class LinXiaoNetConfig:
     # 配置数据集目录
     def set_dataset_dir(self, dataset_dir):
         self.dataset_dir = dataset_dir
+
+    # 设置数据集缓存对象，用于生成loader
+    # def set_data_cache(self, data_cache):
+    #     self.data_cache = data_cache
 
     def __str__(self):
         ret = '[LinXiaoNet CONFIG]\n'

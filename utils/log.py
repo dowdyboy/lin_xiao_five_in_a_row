@@ -22,7 +22,7 @@ class MyNetLogger:
 
     def init(self):
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=logging.INFO,
             filename='tmp.log'
         )
         formatter = logging.Formatter(self.log_format)
@@ -47,4 +47,17 @@ class MyNetLogger:
         log.set_log_file_path(log_path)
         log.init()
         return log
+
+
+_logger = print
+
+
+def init_logger(log_path):
+    global _logger
+    _logger = MyNetLogger.default(log_path)
+
+
+def logger():
+    global _logger
+    return _logger
 

@@ -27,8 +27,8 @@ def save_checkpoint(save_dir, chess_num, ep_num, model_dict, optimizer_dict, lr_
 if __name__ == '__main__':
     mcts_conf = MCTSConfig()
     mcts_conf.set_chess_config(10, 2000)
-    mcts_conf.set_save_dir('out/step_m10000')
-    mcts_conf.set_log_file('log/step_m10000.log')
+    mcts_conf.set_save_dir('out/step_m10000_3')
+    mcts_conf.set_log_file('log/step_m10000_3.log')
 
     logger = print if mcts_conf.log_file is None else MyNetLogger.default(mcts_conf.log_file)
     logger(mcts_conf)
@@ -36,12 +36,12 @@ if __name__ == '__main__':
     net_conf = LinXiaoNetConfig()
     net_conf.set_cuda(True)
     net_conf.set_input_shape(16, 16)
-    net_conf.set_train_info(90, 4, 1e-2)
-    net_conf.set_checkpoint_config(90, 'checkpoints/step_m10000')
-    net_conf.set_dataset_dir('out/step_m10000')
+    net_conf.set_train_info(40, 4, 1e-2)
+    net_conf.set_checkpoint_config(40, 'checkpoints/step_m10000_3')
+    net_conf.set_dataset_dir('out/step_m10000_3')
     net_conf.set_num_worker(0)
     # conf.set_log('log/train.log')
-    net_conf.set_pretrained_path(None)
+    # net_conf.set_pretrained_path('checkpoints/step_m10000_2/epoch80')
     logger(net_conf)
 
     device = 'cuda' if net_conf.use_cuda else 'cpu'
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     model.to(device)
 
     optimizer = torch.optim.SGD(model.parameters(), net_conf.init_lr, 0.9, weight_decay=5e-4)
-    lr_schedule = torch.optim.lr_scheduler.StepLR(optimizer, 10, 0.95)
+    lr_schedule = torch.optim.lr_scheduler.StepLR(optimizer, 1, 0.95)
 
     loss_func = AlphaLoss()
     loss_func.to(device)
@@ -96,7 +96,7 @@ if __name__ == '__main__':
         mcts_gen_chess(model, chess_num + 1, mcts_conf.simulate_count, mcts_conf.save_dir, mcts_conf.log_file, logger)
         model.to(device)
         chess_num += 1
-        train_dataset = ChessDataset(net_conf.dataset_dir, 1, logger)
+        train_dataset = ChessDataset(net_conf.dataset_dir, 10, logger)
         train_loader = DataLoader(train_dataset, net_conf.batch_size, shuffle=True, num_workers=net_conf.num_worker)
         for _ in range(ep_num, ep_num + net_conf.epoch_num):
             logger('epoch {} start...'.format(ep_num))

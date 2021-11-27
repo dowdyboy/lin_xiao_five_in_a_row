@@ -14,3 +14,5 @@ class AlphaLoss(nn.Module):
         _, p_pred = torch.max(gt_p.view(gt_p.size(0), -1), dim=1)
         loss_p = self.cel(p.view(p.size(0), -1), p_pred)
         return loss_v + loss_p
+
+

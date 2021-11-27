@@ -53,7 +53,7 @@ def mcts_gen_chess(model, num_chess, simulate_count, save_dir, log_file_path=Non
                     v = 0.
                     if cur_node.is_over():
                         # print('simulate chess over')
-                        logger('simulate chess over')
+                        # logger('simulate chess over')
                         v = 1. if cur_node.node_state == MonteChessTreeNode.STATE_BLACK_WIN else -1. if cur_node.node_state == MonteChessTreeNode.STATE_WHITE_WIN else 0.
                     else:
                         v = cur_node.V
