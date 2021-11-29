@@ -113,11 +113,12 @@ if __name__ == '__main__':
 
     conf = LinXiaoNetConfig()
     conf.set_cuda(True)
-    conf.set_input_shape(16, 16)
+    conf.set_input_shape(8, 8)
     conf.set_train_info(5, 16, 1e-2)
     conf.set_checkpoint_config(5, 'checkpoints/v2m4000')
     conf.set_num_worker(0)
     conf.set_log('log/v2train.log')
+    # conf.set_pretrained_path('checkpoints/v2m4000/epoch_15')
 
     init_logger(conf.log_file)
     logger()(conf)
@@ -133,7 +134,7 @@ if __name__ == '__main__':
     optimizer = torch.optim.SGD(model.parameters(), conf.init_lr, 0.9, weight_decay=5e-4)
     lr_schedule = torch.optim.lr_scheduler.StepLR(optimizer, 1, 0.95)
 
-    tree = MonteTree(model, device, chess_size=conf.input_shape[0], simulate_count=100)
+    tree = MonteTree(model, device, chess_size=conf.input_shape[0], simulate_count=500)
     data_cache = TrainDataCache(num_worker=conf.num_worker)
 
     ep_num = 0
@@ -175,6 +176,7 @@ if __name__ == '__main__':
                         os.path.join(conf.checkpoint_save_dir, f'epoch_{ep_num}'),
                         ep_num, chess_num, model.state_dict(), optimizer.state_dict(), lr_schedule.state_dict(), data_cache
                     )
+            lr_schedule.step()
             logger()(f'train end.')
         chess_num += 1
         save_chess_record(

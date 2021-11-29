@@ -8,23 +8,19 @@ import torch
 from flask import Flask, request, make_response, jsonify, render_template
 
 from mcts import mcts_do_chess
+from mcts.monte_tree_v2 import MonteTree
 from net import LinXiaoNet
 
 app = Flask(__name__, template_folder='server/templates', static_folder='server/static')
 state_result = {}
+trees = {}
 
-simulate_count = 2000
-model_pretrain_path = None
+chess_size = 8
+simulate_count = 100
 model = LinXiaoNet(3)
-if model_pretrain_path is not None:
-    filename_list = os.listdir(model_pretrain_path)
-    model_filename = None
-    for filename in filename_list:
-        if filename.find('model') > -1:
-            model_filename = filename
-    if model_filename is not None:
-        model.load_state_dict(torch.load(os.path.join(model_pretrain_path, model_filename), map_location='cpu'))
-    print('successfully load pretrained : {}'.format(model_pretrain_path))
+device = 'cpu' if torch.cuda.is_available() else 'cpu'
+
+model_pretrain_path = None
 
 
 def calculate_next_state(state_id, cur_state, player):
@@ -35,6 +31,17 @@ def calculate_next_state(state_id, cur_state, player):
     new_state[next_x][next_y] = player
     state_result[state_id] = new_state
     print('end calculate :', state_result)
+
+
+def calculate_next_state_v2(state_id, tree_id, pos, cur_state, player):
+    global state_result, trees
+    print('start to calculate next state...')
+    new_state = copy.deepcopy(cur_state)
+    tree: MonteTree = trees[tree_id]
+    _, (next_x, next_y) = tree.vs_game(pos)
+    new_state[next_x][next_y] = player
+    state_result[state_id] = new_state
+    print('end calculate :\n', state_result)
 
 
 @app.route('/hello')
@@ -52,7 +59,7 @@ def put_state():
     req = request.get_json()
     print(type(req), req)
     state_id = random.randint(1000, 100000)
-    t = threading.Thread(target=calculate_next_state, args=(state_id, req['chess_state'], req['player']))
+    t = threading.Thread(target=calculate_next_state_v2, args=(state_id, req['tree_id'], req['pos'], req['chess_state'], req['player']))
     t.start()
     ret = {
         'code': 0,
@@ -83,6 +90,35 @@ def get_state(state_id):
         }
     }
     return jsonify(ret)
+
+
+@app.route('/game/start', methods=['POST'])
+def game_start():
+    global trees
+    global model, device, chess_size, simulate_count
+    tree_id = random.randint(1000, 100000)
+    trees[tree_id] = MonteTree(model, device, chess_size=chess_size, simulate_count=simulate_count)
+    ret = {
+        'code': 0,
+        'msg': 'OK',
+        'data': {
+            'tree_id': tree_id
+        }
+    }
+    return jsonify(ret)
+
+
+@app.route('/game/end/<tree_id>', methods=['POST'])
+def game_end(tree_id):
+    global trees
+    tree_id = int(tree_id)
+    trees[tree_id] = None
+    ret = {
+        'code': 0,
+        'msg': 'OK',
+        'data': {}
+    }
+    return ret
 
 
 if __name__ == '__main__':

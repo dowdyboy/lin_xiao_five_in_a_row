@@ -10,12 +10,12 @@ class CNNBackbone(nn.Module):
     def __init__(self, channel):
         super(CNNBackbone, self).__init__()
         self.conv1_311 = BasicConv(channel, channel, 3, 1, 1)
-        self.res_1 = BasicResBlock(channel)
+        self.res_1 = nn.Sequential(*[BasicResBlock(channel) for _ in range(20)])
         self.conv2_312 = BasicConv(channel, 2*channel, 3, 1, 2)
-        self.res_2 = BasicResBlock(2*channel)
+        self.res_2 = nn.Sequential(*[BasicResBlock(2*channel) for _ in range(50)])
         self.up_2 = nn.Upsample(scale_factor=2)
         self.conv3_312 = BasicConv(2*channel, 4*channel, 3, 1, 2)
-        self.res_3 = BasicResBlock(4*channel)
+        self.res_3 = nn.Sequential(*[BasicResBlock(4*channel) for _ in range(90)])
         self.up_3 = nn.Upsample(scale_factor=4)
         self.conv4_311 = BasicConv(7*channel, channel, 3, 1, 1)
 

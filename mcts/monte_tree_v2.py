@@ -368,16 +368,30 @@ class MonteTree:
             self.simulate()
             pos_idx, distribute = self.current_node.get_distribute(self.dist_calc, True)
             self.real_state.step(pos_idx2pos_pair(pos_idx, self.chess_size)[0], pos_idx2pos_pair(pos_idx, self.chess_size)[1])
+            logger()(f'\n{str(self.real_state.chess_state)}')
             self.current_node = self.step_update(pos_idx)
             step_record.append(
                 (distribute, pos_idx)
             )
             if self.real_state.chess_win_state != MonteChessState.CHESS_STATE_DOING:
                 is_continue = False
-        logger()(f'\n{str(self.real_state.chess_state)}')
+        # logger()(f'\n{str(self.real_state.chess_state)}')
         logger()(f'winner: {self.real_state.chess_win_state}, black_count: {self.real_state.black_count}, white_count: {self.real_state.white_count}')
         self.reset()
         return step_record
+
+    def vs_game(self, pos_pair):
+        self.real_state.step(pos_pair[0], pos_pair[1])
+        if pos_pair2pos_idx(pos_pair, self.chess_size) not in self.current_node.children.keys():
+            self.current_node.children[pos_pair2pos_idx(pos_pair, self.chess_size)] = MonteTreeEdge(self.current_node, pos_pair2pos_idx(pos_pair, self.chess_size), 1.)
+        self.current_node = self.step_update(pos_pair2pos_idx(pos_pair, self.chess_size))
+        self.simulate()
+        pos_idx, distribute = self.current_node.get_distribute(self.dist_calc, False)
+        self.real_state.step(pos_idx2pos_pair(pos_idx, self.chess_size)[0], pos_idx2pos_pair(pos_idx, self.chess_size)[1])
+        self.current_node = self.step_update(pos_idx)
+        return pos_idx, (pos_idx2pos_pair(pos_idx, self.chess_size)[0], pos_idx2pos_pair(pos_idx, self.chess_size)[1])
+
+
 
 
 

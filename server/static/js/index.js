@@ -1,7 +1,8 @@
 
 $(function (){
-    var width = 512, height = 512, offset_x = 32, offset_y = 32;
-    var row = 16, col = 16;
+    var row = 8, col = 8;
+    var width = 512, height = 512;
+    var offset_x = width / (row) / 2, offset_y = height / (col) / 2;
     var chess_conf = {
         'width': width,
         'height': height,
@@ -15,6 +16,7 @@ $(function (){
     var cur_player = 1;
     var cur_state = initChessState(row, col);
     var cur_state_id = null;
+    var tree_id = null;
     var cur_chess_state = 0;
 
     function drawChessTable(ctx, width, height, offset_x, offset_y, row, col){
@@ -48,7 +50,7 @@ $(function (){
         ctx.arc(
             chess_conf.offset_y + y * (chess_conf.height / (chess_conf.col-1)),
             chess_conf.offset_x + x * (chess_conf.width / (chess_conf.row-1)),
-            chess_conf.row / 1.25,
+            (chess_conf.width / chess_conf.row / 2) / 1.25,
             0, 2 * Math.PI
         );
         ctx.fill();
@@ -84,12 +86,15 @@ $(function (){
         }
         if(cur_chess_state == 1){
             $('#reminder').text('恭喜！你赢了！！击败了电脑！');
+            game_end();
         }
         if(cur_chess_state == -1){
             $('#reminder').text('很遗憾，你被电脑击败了！！');
+            game_end();
         }
         if(cur_chess_state == 2){
             $('#reminder').text('哎呀呀，居然平局了~~~');
+            game_end();
         }
     }
 
@@ -222,13 +227,15 @@ $(function (){
         }
     }
 
-    function put_state(state, player){
+    function put_state(state, player, pos){
         $.ajax({
             type:'POST',
             url:'/state/put',
             data:JSON.stringify({
+                tree_id: tree_id,
                 chess_state: state,
-                player: player
+                player: player,
+                pos: pos
             }),
             contentType:'application/json',
             dataType:'json',
@@ -274,6 +281,50 @@ $(function (){
         }
     }
 
+    function game_start(){
+        $.ajax({
+            type:'POST',
+            url:'/game/start',
+            data:JSON.stringify({}),
+            contentType:'application/json',
+            dataType:'json',
+            success: function (resp){
+                console.log(resp);
+                if(resp.code == 0){
+                    tree_id = resp.data.tree_id;
+                }else{
+                    alert('!!服务端异常!!');
+                }
+            },
+            error: function (){
+                alert('!!服务端异常!!');
+            }
+        })
+    }
+
+    function game_end(){
+        $.ajax({
+            type:'POST',
+            url:'/game/end/'+tree_id,
+            data:JSON.stringify({}),
+            contentType:'application/json',
+            dataType:'json',
+            success: function (resp){
+                console.log(resp);
+                if(resp.code == 0){
+
+                }else{
+                    alert('!!服务端异常!!');
+                }
+            },
+            error: function (){
+                alert('!!服务端异常!!');
+            }
+        })
+    }
+
+    game_start();
+
     $(canvas).click(function (e){
         var x_pix = Math.floor(e.pageX - e.target.getBoundingClientRect().left) - offset_x;
         var y_pix = Math.floor(e.pageY - e.target.getBoundingClientRect().top) - offset_y;
@@ -298,7 +349,7 @@ $(function (){
             updateChessState();
             updateReminderText(cur_player);
             if(cur_chess_state == 0){
-                put_state(cur_state, cur_player);
+                put_state(cur_state, cur_player, [x_pos, y_pos]);
             }
         }
     });
