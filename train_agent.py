@@ -115,7 +115,7 @@ if __name__ == '__main__':
     conf.set_cuda(True)
     conf.set_input_shape(8, 8)
     conf.set_train_info(5, 16, 1e-2)
-    conf.set_checkpoint_config(5, 'checkpoints/v2m4000')
+    conf.set_checkpoint_config(5, 'checkpoints/v2train')
     conf.set_num_worker(0)
     conf.set_log('log/v2train.log')
     # conf.set_pretrained_path('checkpoints/v2m4000/epoch_15')
@@ -134,12 +134,14 @@ if __name__ == '__main__':
     optimizer = torch.optim.SGD(model.parameters(), conf.init_lr, 0.9, weight_decay=5e-4)
     lr_schedule = torch.optim.lr_scheduler.StepLR(optimizer, 1, 0.95)
 
+    # initial config tree
     tree = MonteTree(model, device, chess_size=conf.input_shape[0], simulate_count=500)
     data_cache = TrainDataCache(num_worker=conf.num_worker)
 
     ep_num = 0
     chess_num = 0
-    train_every_chess = 2
+    # config train interval
+    train_every_chess = 18
 
     if conf.pretrain_path is not None:
         model_data, optimizer_data, lr_schedule_data, data_cache, ep_num, chess_num = load_checkpoint(conf.pretrain_path)

@@ -368,7 +368,7 @@ class MonteTree:
             self.simulate()
             pos_idx, distribute = self.current_node.get_distribute(self.dist_calc, True)
             self.real_state.step(pos_idx2pos_pair(pos_idx, self.chess_size)[0], pos_idx2pos_pair(pos_idx, self.chess_size)[1])
-            logger()(f'\n{str(self.real_state.chess_state)}')
+            logger()(f'\n({pos_idx2pos_pair(pos_idx, self.chess_size)[0]},{pos_idx2pos_pair(pos_idx, self.chess_size)[1]})\n{str(self.real_state.chess_state)}')
             self.current_node = self.step_update(pos_idx)
             step_record.append(
                 (distribute, pos_idx)
