@@ -1,6 +1,25 @@
 
+body {
+    background-image: url("../image/bg.jpg");
+    background-repeat: repeat-y;
+    background-size: cover;
+}
+
+h1 {
+    color: white;
+    text-indent: 5%;
+    letter-spacing: 3px;
+}
+
 #container{
     width: 580px;
     margin-left: auto;
     margin-right: auto;
+}
+
+#container div{
+    color: white;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
 }

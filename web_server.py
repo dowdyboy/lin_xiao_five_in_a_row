@@ -7,7 +7,7 @@ import threading
 import torch
 from flask import Flask, request, make_response, jsonify, render_template
 
-from mcts import mcts_do_chess
+# from mcts import mcts_do_chess
 from mcts.monte_tree_v2 import MonteTree
 from net import LinXiaoNet
 
@@ -23,14 +23,14 @@ device = 'cpu' if torch.cuda.is_available() else 'cpu'
 model_pretrain_path = None
 
 
-def calculate_next_state(state_id, cur_state, player):
-    global state_result
-    print('start to calculate next state...')
-    new_state = copy.deepcopy(cur_state)
-    next_x, next_y = mcts_do_chess(model, simulate_count, cur_state, player)
-    new_state[next_x][next_y] = player
-    state_result[state_id] = new_state
-    print('end calculate :', state_result)
+# def calculate_next_state(state_id, cur_state, player):
+#     global state_result
+#     print('start to calculate next state...')
+#     new_state = copy.deepcopy(cur_state)
+#     next_x, next_y = mcts_do_chess(model, simulate_count, cur_state, player)
+#     new_state[next_x][next_y] = player
+#     state_result[state_id] = new_state
+#     print('end calculate :', state_result)
 
 
 def calculate_next_state_v2(state_id, tree_id, pos, cur_state, player):
