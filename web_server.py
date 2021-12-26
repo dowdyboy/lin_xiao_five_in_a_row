@@ -12,14 +12,20 @@ from mcts.monte_tree_v2 import MonteTree
 from net import LinXiaoNet
 
 app = Flask(__name__, template_folder='server/templates', static_folder='server/static')
+# 暂存机器落子状态
 state_result = {}
+# 存放游戏创建的蒙特卡洛树
 trees = {}
 
+# 游戏配置
+# 棋盘大小
 chess_size = 8
+# 每次实际落子前，模拟推演的次数
 simulate_count = 100
+# 创建决策网络
 model = LinXiaoNet(3)
-device = 'cpu' if torch.cuda.is_available() else 'cpu'
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# 加载训练权重
 model_pretrain_path = None
 
 
@@ -38,8 +44,11 @@ def calculate_next_state_v2(state_id, tree_id, pos, cur_state, player):
     print('start to calculate next state...')
     new_state = copy.deepcopy(cur_state)
     tree: MonteTree = trees[tree_id]
+    # 讲用户的落子位置传入函数，通过蒙特树进行计算，获取机器落子
     _, (next_x, next_y) = tree.vs_game(pos)
+    # 更新棋盘状态
     new_state[next_x][next_y] = player
+    # 记录新状态
     state_result[state_id] = new_state
     print('end calculate :\n', state_result)
 
@@ -54,6 +63,7 @@ def index():
     return render_template('index.html')
 
 
+# 接收用户落子
 @app.route('/state/put', methods=['POST'])
 def put_state():
     req = request.get_json()
@@ -71,6 +81,7 @@ def put_state():
     return jsonify(ret)
 
 
+# 用户查询机器落子状态
 @app.route('/state/get/<state_id>', methods=['GET'])
 def get_state(state_id):
     global state_result
@@ -92,6 +103,7 @@ def get_state(state_id):
     return jsonify(ret)
 
 
+# 游戏开始，为这场游戏创建蒙特卡洛树
 @app.route('/game/start', methods=['POST'])
 def game_start():
     global trees
@@ -108,6 +120,7 @@ def game_start():
     return jsonify(ret)
 
 
+# 游戏结束，销毁蒙特卡洛树
 @app.route('/game/end/<tree_id>', methods=['POST'])
 def game_end(tree_id):
     global trees
