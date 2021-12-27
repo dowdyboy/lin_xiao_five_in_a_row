@@ -450,11 +450,16 @@ class MonteTree:
         is_continue = True
         step_record = []
         while is_continue:
+            # 进行模拟推演
             self.simulate()
+            # 根据推演结果获取实际落子位置和概率分布
             pos_idx, distribute = self.current_node.get_distribute(self.dist_calc, True)
+            # 进行实际落子
             self.real_state.step(pos_idx2pos_pair(pos_idx, self.chess_size)[0], pos_idx2pos_pair(pos_idx, self.chess_size)[1])
             logger()(f'\n({pos_idx2pos_pair(pos_idx, self.chess_size)[0]},{pos_idx2pos_pair(pos_idx, self.chess_size)[1]})\n{str(self.real_state.chess_state)}')
+            # 更新棋盘状态
             self.current_node = self.step_update(pos_idx)
+            # 记录落子概率分布和实际落子位置索引
             step_record.append(
                 (distribute, pos_idx)
             )
@@ -462,6 +467,7 @@ class MonteTree:
                 is_continue = False
         # logger()(f'\n{str(self.real_state.chess_state)}')
         logger()(f'winner: {self.real_state.chess_win_state}, black_count: {self.real_state.black_count}, white_count: {self.real_state.white_count}')
+        # 重置树和棋盘状态
         self.reset()
         return step_record
 

@@ -89,22 +89,32 @@ def load_checkpoint(checkpoint_path):
     return model_data, optimizer_data, lr_schedule_data, data_cache_data, epoch_data, chess_num
 
 
+# 生成训练数据
 def generate_train_data(chess_size, chess_record):
+    # 新建个空棋盘状态
     chess_state = np.zeros((chess_size, chess_size))
     data = []
+    # 初始是黑子落子
     player = 1
+    # 根据对弈记录步数计算是谁赢了
     winner = -1 if len(chess_record) % 2 == 0 else 1
     for i in range(len(chess_record)):
+        # 获取落子位置索引
         pos_idx = chess_record[i][1]
         state = transfer_to_net_input(chess_state, player, chess_size)
+        # 记录训练数据
         data.append({
             'state': state,
             'distribution': chess_record[i][0],
             'value': winner
         })
+        # 根据棋盘状态和落子位置更新棋盘状态
         chess_state[pos_idx2pos_pair(pos_idx, chess_size)[0], pos_idx2pos_pair(pos_idx, chess_size)[1]] = player
+        # 易手
         player = -player
         # TODO: 思考这里为什么要变号
+        # 因为winner是训练数据中的奖励value，应该始终保持对于赢家为1、对于输家为-1；加入黑棋应，winner初始值为1
+        # 由于黑子先手，因此对于所有黑子落子的状态都给正奖励，给所有白子落子的状态都给负奖励；反之亦然
         winner = -winner
     return data
 
@@ -125,6 +135,7 @@ if __name__ == '__main__':
 
     device = 'cuda' if conf.use_cuda else 'cpu'
 
+    # 创建策略网络
     model = LinXiaoNet(3)
     model.to(device)
 
@@ -143,6 +154,7 @@ if __name__ == '__main__':
     # config train interval
     train_every_chess = 18
 
+    # 加载检查点
     if conf.pretrain_path is not None:
         model_data, optimizer_data, lr_schedule_data, data_cache, ep_num, chess_num = load_checkpoint(conf.pretrain_path)
         model.load_state_dict(model_data)
@@ -152,9 +164,12 @@ if __name__ == '__main__':
 
     while True:
         logger()(f'self chess game no.{chess_num+1} start.')
+        # 进行一次自我对弈，获取对弈记录
         chess_record = tree.self_game()
         logger()(f'self chess game no.{chess_num+1} end.')
+        # 根据对弈记录生成训练数据
         train_data = generate_train_data(tree.chess_size, chess_record)
+        # 将训练数据存入缓存
         for i in range(len(train_data)):
             data_cache.push(train_data[i])
         if chess_num % train_every_chess == 0:
