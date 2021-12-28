@@ -10,7 +10,6 @@ from flask import Flask, request, make_response, jsonify, render_template
 # from mcts import mcts_do_chess
 from mcts.monte_tree_v2 import MonteTree
 from net import LinXiaoNet
-from network import TransplantNet
 
 app = Flask(__name__, template_folder='server/templates', static_folder='server/static')
 # 暂存机器落子状态
@@ -22,14 +21,12 @@ trees = {}
 # 棋盘大小
 chess_size = 8
 # 每次实际落子前，模拟推演的次数
-simulate_count = 5000
+simulate_count = 3000
 # 创建决策网络
-# model = LinXiaoNet(3)
-model = TransplantNet('model_5400.pkl')
+model = LinXiaoNet(3)
 device = 'cpu' if torch.cuda.is_available() else 'cpu'
 # 加载训练权重
-# model_pretrain_path = 'checkpoints/v2train/epoch_655'
-model_pretrain_path = None
+model_pretrain_path = 'checkpoints/v2train/epoch_655'
 
 # 加载权重
 if model_pretrain_path is not None:
