@@ -25,7 +25,7 @@ chess_size = 8
 simulate_count = 5000
 # 创建决策网络
 # model = LinXiaoNet(3)
-model = TransplantNet('checkpoints/model_5400.pkl')
+model = TransplantNet('model_5400.pkl')
 device = 'cpu' if torch.cuda.is_available() else 'cpu'
 # 加载训练权重
 # model_pretrain_path = 'checkpoints/v2train/epoch_655'
